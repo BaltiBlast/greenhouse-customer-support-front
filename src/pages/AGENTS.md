@@ -1,0 +1,111 @@
+# AGENTS.md : Pages
+
+## Périmètre
+
+Ces instructions s'appliquent à toutes les pages situées dans `src/pages`
+et complètent les instructions du `AGENTS.md` racine.
+
+## Organisation
+
+Chaque page possède son propre dossier et regroupe les ressources qui lui sont
+spécifiques :
+
+```text
+pages/
+└── Categorie/                 # lorsqu'au moins deux pages partagent un domaine
+    └── nom-page/
+        ├── NomPage.page.jsx
+        ├── NomPage.module.css
+        ├── NomPage.data.js    # si des données statiques sont nécessaires
+        ├── NomPage.utils.js   # si des fonctions pures sont nécessaires
+        └── sections/          # si la page doit être découpée en sections
+            └── NomSection/
+                ├── NomSection.jsx
+                └── NomSection.module.css
+```
+
+- Ne créer que les fichiers et dossiers nécessaires à la page.
+- Regrouper dans un dossier de catégorie les pages appartenant au même domaine
+  fonctionnel, par exemple `Client/Clients`, `Client/ClientCreate` et
+  `Client/ClientDetails`.
+- Conserver directement à la racine de `pages` une page qui ne partage pas
+  encore de domaine avec une autre page.
+- Conserver dans le dossier de la page les sections, styles et données qui ne
+  sont utilisés que par celle-ci.
+- Déplacer une section vers les composants partagés uniquement lorsqu'elle est
+  réellement utilisée par plusieurs pages.
+- Utiliser un CSS Module colocalisé pour les styles propres à une page ou à un
+  composant.
+- Nommer le fichier JSX principal avec le suffixe `.page.jsx`, par exemple
+  `Tickets.page.jsx`.
+- Nommer son CSS Module sans répéter le suffixe `page`, par exemple
+  `Tickets.module.css`.
+- Le composant React exporté conserve un nom explicite avec le suffixe `Page`,
+  par exemple `TicketsPage`.
+
+## Composition
+
+- Le composant principal de la page assemble ses différentes sections.
+- Créer un composant de section lorsque cela améliore réellement la lisibilité,
+  l'isolation des responsabilités ou la réutilisation.
+- Ne pas extraire un composant pour un fragment de JSX trivial.
+- Une section propre à une page reste dans le dossier `sections` de cette
+  page.
+- Confirmer toute suppression définitive dans une modale React avant d'appeler
+  l'API. La modale doit permettre d'annuler sans effet et conserver l'erreur de
+  suppression visible sans se fermer.
+
+## Logique
+
+- Le composant principal de la page orchestre la logique propre à l'ensemble de
+  la page : chargement des données, état partagé entre plusieurs sections,
+  coordination des actions et gestion des états globaux de chargement ou
+  d'erreur.
+- Transmettre aux sections les données et actions nécessaires avec des props
+  explicites.
+- Conserver une logique strictement locale dans le composant qui la possède,
+  lorsqu'elle n'affecte aucune autre section de la page.
+- Extraire une logique complexe dans un hook dédié lorsqu'elle nuit à la
+  lisibilité du composant principal.
+- Ne pas placer dans une page une logique générique déjà disponible ailleurs.
+
+## Données statiques
+
+- Placer les données statiques spécifiques à une page dans un fichier
+  `*.data.js` situé à sa racine.
+- Exporter des structures simples et explicites.
+- Ne pas utiliser un fichier de données pour stocker un état modifiable ou une
+  donnée reçue depuis l'API.
+- Déplacer une donnée vers un emplacement partagé uniquement lorsqu'elle est
+  utilisée par plusieurs pages.
+
+## Fonctions utilitaires
+
+- Placer les fonctions pures propres à une page ou à une section dans un fichier
+  `*.utils.js` colocalisé avec l'élément concerné.
+- Regrouper les fonctions exposées dans un unique objet exporté par défaut.
+- Déclarer directement chaque constante et chaque fonction comme une propriété
+  de cet objet, sans déclaration intermédiaire en dehors de celui-ci.
+- Importer cet objet sous le nom `utils` sans le déstructurer afin d'identifier
+  clairement la provenance des fonctions utilisées dans le fichier appelant.
+- Ne pas placer d'état React, de hook, d'accès au DOM ou d'effet externe dans un
+  fichier utilitaire.
+- Conserver une fonction dans le fichier JSX lorsqu'elle est courte et
+  strictement liée à son rendu.
+
+## Formulaires React Hook Form
+
+- Utiliser React Hook Form pour gérer les données, la validation, les erreurs et
+  l'état de soumission des formulaires applicatifs.
+- Placer la configuration propre à un formulaire dans un fichier `*.form.js`
+  situé à la racine du dossier de sa page.
+- Exporter par défaut un unique objet `formConfig` contenant au minimum les
+  valeurs initiales dans `defaultValues` et les règles dans `rules`.
+- Importer cet objet sous le nom `formConfig` dans la page concernée.
+- Utiliser `useFieldArray` pour les listes de champs dynamiques.
+- Transformer les données propres à l'interface vers le contrat de l'API dans
+  la fonction de soumission de la page.
+- Afficher les erreurs de React Hook Form au niveau des champs concernés.
+- Conserver un message général lorsque l'API refuse la requête ou rencontre une
+  erreur interne.
+- Réinitialiser le formulaire uniquement après une réponse valide de l'API.

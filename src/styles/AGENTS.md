@@ -1,0 +1,50 @@
+# AGENTS.md — Styles globaux
+
+## Périmètre
+
+Ces instructions s'appliquent aux fichiers situés dans `src/styles` et
+complètent les instructions du `AGENTS.md` racine et de `AGENTS.md`.
+
+## Responsabilité
+
+Ce dossier contient uniquement :
+
+- les règles de reset communes à toute l'application ;
+- les variables et valeurs visuelles globales ;
+- les styles réellement applicables à l'ensemble de l'application ;
+- les CSS Modules partagés correspondant à un motif d'interface réutilisable.
+
+- Placer les normalisations du navigateur dans `reset.css`.
+- Placer les variables CSS et les règles globales dans `globals.css`.
+- Ne pas placer ici un style propre à une page, une section ou un composant.
+- Les styles spécifiques doivent rester dans le CSS Module colocalisé avec
+  l'élément concerné.
+- Ne pas ajouter de nouvelle valeur globale lorsqu'une valeur existante répond
+  déjà au besoin.
+
+## Styles de formulaires
+
+- Utiliser `Form.module.css` pour les styles communs aux formulaires.
+- Importer ce module explicitement dans chaque page ou composant concerné.
+- Ne conserver dans le CSS Module local que les règles propres au formulaire
+  ou à la page concernée.
+- Ne pas cibler globalement toutes les balises `form`, `input`, `textarea` ou
+  `fieldset`.
+
+## Variables globales
+
+- Utiliser les variables `--space-*` pour les marges, paddings et espacements.
+- Ne pas créer d'échelles distinctes pour les marges et les paddings.
+- Utiliser les variables `--size-*` pour les dimensions physiques des contrôles,
+  icônes, avatars, logos et autres éléments graphiques.
+- Ne pas utiliser `--size-*` pour les espacements ou les tailles de texte.
+- Utiliser `--font-family-base` pour la police principale de l'application.
+- Utiliser les variables `--font-weight-*` pour les graisses de texte.
+- Utiliser les variables `--font-size-*` pour les tailles de texte.
+- Utiliser les variables `--color-*` selon leur rôle sémantique afin que les
+  styles restent compatibles avec les thèmes clair et sombre.
+- Ne pas écrire directement une couleur propre au thème dans un CSS Module.
+- Privilégier les variables existantes aux valeurs écrites directement dans les
+  CSS Modules.
+- Toute nouvelle catégorie de variable globale doit être discutée avant son
+  ajout.
