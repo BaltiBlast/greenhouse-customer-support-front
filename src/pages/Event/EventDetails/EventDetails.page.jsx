@@ -93,7 +93,7 @@ export default function EventDetailsPage() {
     return (
       <main className={styles.state}>
         <p role="alert">{errorMessage || "Cet événement est introuvable."}</p>
-        <Link to="/events">Revenir aux événements</Link>
+        <Link to="/">Revenir aux événements</Link>
       </main>
     );
   }
@@ -148,7 +148,7 @@ export default function EventDetailsPage() {
 
     try {
       await deleteEvent(eventId);
-      navigate("/events", { replace: true });
+      navigate("/", { replace: true });
     } catch (error) {
       setDeleteError(error.message || "Impossible de supprimer l'événement.");
       setIsDeleting(false);
@@ -157,7 +157,7 @@ export default function EventDetailsPage() {
 
   return (
     <main className={formStyles.page}>
-      <Link className={styles.backLink} to="/events">Retour aux événements</Link>
+      <Link className={styles.backLink} to="/">Retour aux événements</Link>
 
       <header className={`${formStyles.header} ${styles.header}`}>
         <div>
