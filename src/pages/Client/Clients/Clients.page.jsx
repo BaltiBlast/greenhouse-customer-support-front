@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getClients } from "../../../services/clients/clients.api.js";
+import { getMeasurements } from "../../../services/measurements/measurements.api.js";
 import styles from "./Clients.module.css";
 import ClientCards from "./sections/ClientCards/ClientCards.jsx";
 
@@ -29,7 +30,13 @@ export default function ClientsPage() {
     async function loadClients() {
       try {
         const clientList = await getClients(controller.signal);
-        setClients(clientList);
+        const clientsWithMeasurements = await Promise.all(
+          clientList.map(async (client) => ({
+            ...client,
+            measurements: await getMeasurements(client.id, controller.signal),
+          })),
+        );
+        setClients(clientsWithMeasurements);
       } catch (error) {
         if (error.name !== "AbortError") {
           setErrorMessage(error.message || "Impossible de récupérer les clients.");

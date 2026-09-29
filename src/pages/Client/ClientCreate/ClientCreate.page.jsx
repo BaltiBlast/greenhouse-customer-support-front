@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { createClient } from "../../../services/clients/clients.api.js";
+import { createClient, deleteClient } from "../../../services/clients/clients.api.js";
+import { createMeasurement } from "../../../services/measurements/measurements.api.js";
 import formStyles from "../../../styles/Form.module.css";
 import formConfig from "./ClientCreate.form.js";
 import styles from "./ClientCreate.module.css";
@@ -32,19 +33,45 @@ export default function ClientCreatePage() {
     clearErrors("root.server");
     setSuccessMessage(null);
 
+    const {
+      bodyFat,
+      muscleMass,
+      weight,
+      ...clientFields
+    } = data;
     const clientData = {
-      ...data,
+      ...clientFields,
       pathologies: data.pathologies.map(({ value }) => value),
     };
+    const measurementData = {
+      measuredAt: new Date().toISOString(),
+      weight,
+      ...(bodyFat !== undefined ? { bodyFat } : {}),
+      ...(muscleMass !== undefined ? { muscleMass } : {}),
+    };
+
+    let createdClientId;
 
     try {
-      await createClient(clientData);
+      const createdClient = await createClient(clientData);
+      createdClientId = createdClient.id;
+      await createMeasurement(createdClientId, measurementData);
       reset();
-      setSuccessMessage("Le client a bien été créé.");
+      setSuccessMessage("Le client et sa mesure initiale ont bien été créés.");
     } catch (error) {
+      let message = error.message || "Impossible d'envoyer les données du client.";
+
+      if (createdClientId) {
+        try {
+          await deleteClient(createdClientId);
+        } catch {
+          message = "Le client a été créé, mais sa mesure initiale n'a pas pu être enregistrée. Consultez la liste des clients avant de réessayer.";
+        }
+      }
+
       setError("root.server", {
         type: "server",
-        message: error.message || "Impossible d'envoyer les données du client.",
+        message,
       });
     }
   }

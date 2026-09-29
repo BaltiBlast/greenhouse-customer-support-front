@@ -22,7 +22,7 @@ export default function ClientCards({ clients }) {
   return (
     <ul className={styles.list}>
       {clients.map((client) => {
-        const latestMeasurement = client.measurements.at(-1);
+        const latestMeasurement = client.measurements[0];
 
         return (
           <li key={client.id}>
@@ -40,11 +40,11 @@ export default function ClientCards({ clients }) {
               <dl className={styles.measurements}>
                 <div>
                   <dt>Taille</dt>
-                  <dd>{latestMeasurement.height} cm</dd>
+                  <dd>{client.height ? `${client.height} cm` : "Non renseignée"}</dd>
                 </div>
                 <div>
                   <dt>Poids</dt>
-                  <dd>{latestMeasurement.weight} kg</dd>
+                  <dd>{latestMeasurement ? `${latestMeasurement.weight} kg` : "Aucune mesure"}</dd>
                 </div>
               </dl>
 

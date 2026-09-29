@@ -6,6 +6,10 @@ import {
   getClientById,
   updateClient,
 } from "../../../services/clients/clients.api.js";
+import {
+  createMeasurement,
+  getMeasurements,
+} from "../../../services/measurements/measurements.api.js";
 import formStyles from "../../../styles/Form.module.css";
 import formConfig from "./ClientDetails.form.js";
 import styles from "./ClientDetails.module.css";
@@ -14,6 +18,13 @@ import DeleteClientModal from "./sections/DeleteClientModal/DeleteClientModal.js
 
 function FieldError({ message }) {
   return message ? <span className={formStyles.fieldError}>{message}</span> : null;
+}
+
+function measurementHasChanged(measurement, data) {
+  return !measurement
+    || measurement.weight !== data.weight
+    || (measurement.bodyFat ?? undefined) !== data.bodyFat
+    || (measurement.muscleMass ?? undefined) !== data.muscleMass;
 }
 
 export default function ClientDetailsPage() {
@@ -51,9 +62,13 @@ export default function ClientDetailsPage() {
       setErrorMessage(null);
 
       try {
-        const clientData = await getClientById(clientId, controller.signal);
-        setClient(clientData);
-        reset(utils.getFormValues(clientData));
+        const [clientData, measurements] = await Promise.all([
+          getClientById(clientId, controller.signal),
+          getMeasurements(clientId, controller.signal),
+        ]);
+        const clientWithMeasurements = { ...clientData, measurements };
+        setClient(clientWithMeasurements);
+        reset(utils.getFormValues(clientWithMeasurements));
       } catch (error) {
         if (error.name !== "AbortError") {
           setClient(null);
@@ -103,14 +118,38 @@ export default function ClientDetailsPage() {
     clearErrors("root.server");
     setSuccessMessage(null);
 
+    const { bodyFat, muscleMass, weight, ...clientFields } = data;
     const clientData = {
-      ...data,
+      ...clientFields,
       pathologies: data.pathologies.map(({ value }) => value),
     };
+    const latestMeasurement = client.measurements[0];
+
+    let clientWasUpdated = false;
 
     try {
       await updateClient(clientId, clientData);
-      const updatedClient = utils.getUpdatedClient(client, data);
+      clientWasUpdated = true;
+      let savedMeasurement;
+
+      if (measurementHasChanged(latestMeasurement, { weight, bodyFat, muscleMass })) {
+        const measuredAt = new Date().toISOString();
+        const createdMeasurement = await createMeasurement(clientId, {
+          measuredAt,
+          weight,
+          ...(bodyFat !== undefined ? { bodyFat } : {}),
+          ...(muscleMass !== undefined ? { muscleMass } : {}),
+        });
+        savedMeasurement = {
+          id: createdMeasurement.id,
+          measuredAt,
+          weight,
+          bodyFat,
+          muscleMass,
+        };
+      }
+
+      const updatedClient = utils.getUpdatedClient(client, data, savedMeasurement);
 
       setClient(updatedClient);
       reset(utils.getFormValues(updatedClient));
@@ -119,7 +158,9 @@ export default function ClientDetailsPage() {
     } catch (error) {
       setError("root.server", {
         type: "server",
-        message: error.message || "Impossible de modifier le client.",
+        message: clientWasUpdated
+          ? "Les informations du client ont été enregistrées, mais pas sa nouvelle mesure. Rechargez la page avant de réessayer."
+          : error.message || "Impossible de modifier le client.",
       });
     }
   }
@@ -225,17 +266,20 @@ export default function ClientDetailsPage() {
 
         <section className={`${formStyles.section} ${styles.history}`}>
           <h2>Historique des mesures</h2>
-          <ul>
-            {client.measurements.map((measurement) => (
-              <li key={measurement.measuredAt}>
-                <strong>{utils.formatMeasurementDate(measurement.measuredAt)}</strong>
-                <span>{measurement.weight} kg</span>
-                <span>{measurement.height} cm</span>
-                <span>{measurement.bodyFat === undefined ? "Masse grasse non renseignée" : `${measurement.bodyFat} % de masse grasse`}</span>
-                <span>{measurement.muscleMass === undefined ? "Masse musculaire non renseignée" : `${measurement.muscleMass} kg de masse musculaire`}</span>
-              </li>
-            ))}
-          </ul>
+          {client.measurements.length > 0 ? (
+            <ul>
+              {client.measurements.map((measurement) => (
+                <li key={measurement.id}>
+                  <strong>{utils.formatMeasurementDate(measurement.measuredAt)}</strong>
+                  <span>{measurement.weight} kg</span>
+                  <span>{measurement.bodyFat === undefined ? "Masse grasse non renseignée" : `${measurement.bodyFat} % de masse grasse`}</span>
+                  <span>{measurement.muscleMass === undefined ? "Masse musculaire non renseignée" : `${measurement.muscleMass} kg de masse musculaire`}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Aucune mesure enregistrée.</p>
+          )}
         </section>
 
         {isEditing && (
