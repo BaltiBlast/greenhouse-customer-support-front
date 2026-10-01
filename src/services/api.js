@@ -1,10 +1,11 @@
 import authEvents from "../auth/auth.events.js";
 
-const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+const API_BASE_URL = `${API_ORIGIN}/api`;
 
 function buildUrl(path) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${API_URL}${normalizedPath}`;
+  return `${API_BASE_URL}${normalizedPath}`;
 }
 
 async function readResponse(response) {
@@ -45,6 +46,7 @@ export async function apiRequest(path, options = {}) {
 
     const error = new Error(data?.message || `Erreur API (${response.status}).`);
     error.status = response.status;
+    error.details = data?.errors || [];
     error.data = data;
     throw error;
   }

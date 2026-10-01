@@ -8,7 +8,7 @@ Application frontend React et Vite de Greenhouse Customer Support.
 npm install
 ```
 
-Copier `.env.example` vers `.env`, puis renseigner `VITE_API_URL` avec l'URL publique de l'API suivie de `/api`.
+Copier `.env.example` vers `.env`, puis renseigner `VITE_API_URL` avec l'origine publique de l'API, sans le suffixe `/api`.
 
 ## Commandes
 
